@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escudo Web - Detección de Phishing</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: var(--card);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+        button {
+            padding: 14px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            border-left: 5px solid;
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .safe { background: rgba(34, 197, 94, 0.1); border-color: #22c55e; }
+        .warning { background: rgba(234, 179, 8, 0.1); border-color: #eab308; }
+        .danger { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+        
+        .score { font-size: 32px; font-weight: bold; margin: 10px 0; }
+        .details { font-size: 14px; color: #cbd5e1; margin-top: 15px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🛡️ Escudo Web</h1>
+        <p class="subtitle">Sistema Inteligente Difuso (Mamdani) para Detección de Phishing</p>
+
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="Ej. http://192.168.1.1/login-bank" onkeypress="if(event.key === 'Enter') analizarURL()">
+            <button id="btnAnalizar" onclick="analizarURL()">Analizar</button>
+        </div>
+
+        <div id="resultado" class="result-box">
+            <h2 id="nivelRiesgo" style="margin-top: 0;"></h2>
+            <div class="score" id="puntuacion"></div>
+            <div class="details" id="detalles"></div>
+        </div>
+    </div>
+
+    <script>
+        async function analizarURL() {
+            const urlInput = document.getElementById('urlInput').value;
+            const btn = document.getElementById('btnAnalizar');
+            const resultBox = document.getElementById('resultado');
+
+            if (!urlInput) {
+                alert("Por favor, ingresa una URL.");
+                return;
+            }
+
+            // Estado de carga
+            btn.disabled = true;
+            btn.textContent = "Analizando...";
+            resultBox.style.display = "none";
+
+            try {
+                // Conectarse a nuestro backend en FastAPI
+                const response = await fetch('http://127.0.0.1:8000/api/analizar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: urlInput })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const info = data.data;
+                    
+                    // Configurar estilos según el nivel
+                    resultBox.className = 'result-box';
+                    if (info.nivel.includes('BAJO')) resultBox.classList.add('safe');
+                    else if (info.nivel.includes('MEDIO')) resultBox.classList.add('warning');
+                    else resultBox.classList.add('danger');
+
+                    // Mostrar resultados
+                    document.getElementById('nivelRiesgo').textContent = info.nivel;
+                    document.getElementById('puntuacion').textContent = `Riesgo: ${info.puntuacion} / 100`;
+                    
+                    document.getElementById('detalles').innerHTML = `
+                        <b>Longitud de URL:</b> ${info.detalles.longitud} caracteres<br>
+                        <b>Usa IP directa:</b> ${info.detalles.usa_ip ? 'Sí 🚨' : 'No ✅'}<br>
+                        <b>Palabras sospechosas:</b> ${info.detalles.tiene_keywords ? 'Sí 🚨' : 'No ✅'}<br>
+                        <b>Protocolo Seguro (HTTPS):</b> ${info.detalles.protocolo_seguro ? 'Sí ✅' : 'No 🚨'}
+                    `;
+                    
+                    resultBox.style.display = "block";
+                } else {
+                    alert("Error del servidor: " + data.error);
+                }
+            } catch (error) {
+                alert("Error conectando con el servidor. Asegúrate de que Uvicorn esté encendido.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Analizar";
+            }
+        }
+    </script>
+</body>
+</html>

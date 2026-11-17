@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+scikit-fuzzy
+numpy
+scipy
+packaging
+networkx 
