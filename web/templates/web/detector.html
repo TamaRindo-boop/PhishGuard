@@ -215,6 +215,7 @@
         <div class="nav-links">
             <span style="color: #94a3b8; margin-right: 15px;">Bienvenido, <strong>{{ request.user.username }}</strong></span>
             <a href="{% url 'panel' %}">Panel Empresarial</a>
+            <a href="{% url 'estadisticas' %}">Estadísticas</a>
             <a href="{% url 'salir' %}" class="link-red">Cerrar Sesión</a>
         </div>
     </div>
@@ -260,7 +261,8 @@
                 </div>
                 <div class="score">Puntaje: {{ resultado.puntuacion }} / 100</div>
                 <div class="result-bar-container">
-                    <div class="result-bar-fill {{ resultado.nivel|lower }}" style="width: {{ resultado.puntuacion }}%;"></div>
+                    <!-- Ajuste para que VS Code no marque error visual -->
+                    <div style="width: {{ resultado.puntuacion }}%;" class="result-bar-fill {{ resultado.nivel|lower }}"></div>
                 </div>
             </div>
 

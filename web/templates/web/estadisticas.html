@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas - PhishGuard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: #0f172a; background-image: radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%); color: #e2e8f0; min-height: 100vh; }
+        
+        .navbar { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .navbar-brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; color: #60a5fa; }
+        .navbar-brand img { height: 35px; }
+        .nav-links a { text-decoration: none; font-weight: 500; font-size: 14px; margin-left: 25px; color: #cbd5e1; }
+        .nav-links a:hover { color: #60a5fa; }
+        .nav-links a.link-red { color: #f87171; }
+
+        .main-content { padding: 40px 50px; max-width: 1200px; margin: 0 auto; }
+        .page-title { font-size: 28px; margin-bottom: 30px; color: white; text-align: center; }
+        .page-title span { color: #60a5fa; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        @media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr; } }
+
+        .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 30px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
+        .card h3 { font-size: 18px; color: #f8fafc; margin-bottom: 20px; font-weight: 500; }
+        
+        .chart-img { max-width: 100%; height: auto; border-radius: 8px; }
+        
+        .total-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+        .total-box h2 { color: #60a5fa; font-size: 36px; margin: 0; }
+        .total-box p { color: #cbd5e1; font-size: 14px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="navbar-brand">
+            <img src="{% static 'img/logo.png' %}" alt="Logo">
+            PhishGuard
+        </div>
+        <div class="nav-links">
+            <span style="color: #94a3b8; margin-right: 15px;">Bienvenido, <strong>{{ request.user.username }}</strong></span>
+            <a href="{% url 'panel' %}">Panel Empresarial</a>
+            <a href="{% url 'detector' %}">Detector de URLs</a>
+            <a href="{% url 'salir' %}" class="link-red">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1 class="page-title">Dashboard de <span>Estadísticas</span></h1>
+
+        <div class="total-box">
+            <h2>{{ total_evaluaciones }}</h2>
+            <p>Evaluaciones de Riesgo realizadas en total</p>
+        </div>
+
+        <div class="stats-grid">
+            <!-- Gráfica Mamdani -->
+            <div class="card">
+                <h3>Visualización del Motor Difuso (Mamdani)</h3>
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Así es como las matemáticas difusas calculan la severidad.</p>
+                <!-- Aquí agregamos el ?t={{ total_evaluaciones }} para evitar la caché -->
+                <img src="data:image/png;base64,{{ grafica_mamdani }}" alt="Gráfica Mamdani" class="chart-img">
+            </div>
+
+            <!-- Gráfica del Historial -->
+            <div class="card">
+                <h3>Distribución de Riesgos (Historial)</h3>
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Porcentaje de evaluaciones según su nivel de riesgo.</p>
+                <!-- Aquí agregamos el ?t={{ total_evaluaciones }} para evitar la caché -->
+                <img src="data:image/png;base64,{{ grafica_historial }}" alt="Gráfica Historial" class="chart-img">
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -8,4 +8,5 @@ urlpatterns = [
     path('panel/', views.panel, name='panel'),
     path('detector/', views.detector_urls, name='detector'), 
     path('registro/', views.registro, name='registro'),
+    path('estadisticas/', views.estadisticas, name='estadisticas'),
 ]

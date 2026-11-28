@@ -7,6 +7,15 @@ from .models import EvaluacionRiesgo
 from .models import EvaluacionRiesgo, AnalisisURL # <-- Agrega AnalisisURL
 from django.contrib.auth.models import User # <-- Agrega esto arriba
 
+import matplotlib
+matplotlib.use('Agg') # Necesario para que funcione sin interfaz gráfica
+import matplotlib.pyplot as plt
+import io
+import base64
+import numpy as np
+import skfuzzy as fuzz
+from django.db.models import Count
+
 def inicio(request):
     return render(request, 'web/index.html')
 
@@ -120,3 +129,59 @@ def registro(request):
         return redirect('detector')
         
     return render(request, 'web/registro.html')
+
+@login_required
+def estadisticas(request):
+    # --- 1. GRÁFICA MAMDANI ---
+    fig, ax = plt.subplots(figsize=(6, 4))
+    universo = np.arange(1, 11, 1)
+    
+    ax.plot(universo, fuzz.trimf(universo, [1, 1, 5]), 'g', linewidth=2, label='Bajo')
+    ax.plot(universo, fuzz.trimf(universo, [3, 5, 8]), 'y', linewidth=2, label='Medio')
+    ax.plot(universo, fuzz.trimf(universo, [6, 10, 10]), 'r', linewidth=2, label='Alto')
+    
+    ax.set_title('Funciones de Pertenencia - Severidad', color='white')
+    ax.set_xlabel('Nivel de Severidad (1-10)', color='white')
+    ax.set_ylabel('Grado de Pertenencia', color='white')
+    ax.tick_params(colors='white')
+    ax.legend(facecolor='#1e293b', labelcolor='white')
+    ax.grid(True, alpha=0.2, color='gray')
+    
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png', bbox_inches='tight', facecolor='#1e293b')
+    buffer.seek(0)
+    grafica_mamdani = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    plt.close()
+
+    # --- 2. GRÁFICA DEL HISTORIAL ---
+    conteo_niveles = EvaluacionRiesgo.objects.values('nivel').annotate(total=Count('id'))
+    labels = [item['nivel'] for item in conteo_niveles]
+    sizes = [item['total'] for item in conteo_niveles]
+    
+    fig2, ax2 = plt.subplots(figsize=(5, 4))
+    colores = {'BAJO': '#10b981', 'MEDIO': '#f59e0b', 'ALTO': '#ef4444', 'CRÍTICO': '#dc2626'}
+    color_list = [colores.get(label, '#64748b') for label in labels]
+    
+    if sum(sizes) > 0:
+        ax2.pie(sizes, labels=labels, colors=color_list, autopct='%1.1f%%', startangle=90, textprops={'color':"w", 'fontweight':'bold'})
+        ax2.axis('equal')
+    else:
+        ax2.text(0.5, 0.5, 'Sin datos aún', ha='center', va='center', fontsize=14, color='white')
+        
+    ax2.set_title('Distribución de Riesgos Evaluados', color='white')
+    fig2.patch.set_facecolor('#1e293b')
+    
+    buffer2 = io.BytesIO()
+    plt.savefig(buffer2, format='png', bbox_inches='tight', facecolor='#1e293b')
+    buffer2.seek(0)
+    grafica_historial = base64.b64encode(buffer2.getvalue()).decode('utf-8')
+    plt.close()
+
+    # Le decimos al navegador que no guarde esta página en caché
+    response = render(request, 'web/estadisticas.html', {
+        'grafica_mamdani': grafica_mamdani,
+        'grafica_historial': grafica_historial,
+        'total_evaluaciones': EvaluacionRiesgo.objects.count()
+    })
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response

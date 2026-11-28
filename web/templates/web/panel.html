@@ -114,6 +114,7 @@
         <div class="nav-links">
             <span style="color: #94a3b8; margin-right: 15px;">Bienvenido, <strong>{{ request.user.username }}</strong></span>
             <a href="{% url 'detector' %}">Detector de URLs</a>
+            <a href="{% url 'estadisticas' %}">Estadísticas</a>
             <a href="{% url 'salir' %}" class="link-red">Cerrar Sesión</a>
         </div>
     </div>
