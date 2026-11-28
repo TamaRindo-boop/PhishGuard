@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SafeRisk AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .icon-box {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 60px;
+            background-color: #1a1a1a;
+            border-radius: 50px 0 0 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #a0a0a0;
+            font-size: 18px;
+            border: 1px solid #222;
+            border-right: none;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 18px 20px 18px 75px;
+            background-color: #1a1a1a;
+            border: 1px solid #222;
+            border-radius: 50px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input::placeholder {
+            color: #888;
+        }
+
+        input:focus {
+            border-color: #555;
+            background-color: #202020;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            background-color: #9c9c9c;
+            border: none;
+            border-radius: 50px;
+            color: #222;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #b0b0b0;
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if error %}
+                <div class="error-msg">{{ error }}</div>
+            {% endif %}
+
+            <div class="form-group">
+                <div class="icon-box">
+                    <i class="fa-regular fa-envelope"></i>
+                </div>
+                <!-- El name DEBE ser "usuario" -->
+                <input type="text" name="usuario" placeholder="Email ID" required>
+            </div>
+
+            <div class="form-group">
+                <div class="icon-box">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <!-- El name DEBE ser "password" -->
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+
+            <button type="submit">SIGN IN</button>
+        </form>
+    </div>
+
+</body>
+</html>

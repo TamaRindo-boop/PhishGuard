@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - PhishGuard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body {
+            /* El mismo fondo oscuro del login */
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+
+        /* Contenedor con efecto de cristal */
+        .register-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .logo-img { width: 70px; margin-bottom: 10px; }
+        h2 { font-weight: 600; margin-bottom: 25px; font-size: 22px; letter-spacing: 1px; }
+
+        .form-group { position: relative; margin-bottom: 20px; text-align: left; }
+        .form-group label { font-size: 13px; color: #94a3b8; margin-bottom: 5px; display: block; margin-left: 15px; }
+        
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #64748b; }
+        
+        input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+
+        /* Barra de seguridad de contraseña */
+        .password-strength { height: 5px; background: rgba(255,255,255,0.1); border-radius: 5px; margin-top: 8px; margin-left: 15px; margin-right: 15px; overflow: hidden; }
+        .strength-bar { height: 100%; width: 0%; background: #ef4444; transition: 0.3s; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 15px;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
+
+        .links { margin-top: 25px; font-size: 13px; color: #94a3b8; }
+        .links a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+        
+        .match-error { font-size: 11px; color: #ef4444; margin-top: 5px; margin-left: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="register-container">
+        <img src="{% static 'img/logo.png' %}" alt="PhishGuard" class="logo-img">
+        <h2>Crear Cuenta</h2>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Nombre completo</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-user"></i>
+                    <input type="text" name="nombre" placeholder="Juan Pérez" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Correo electrónico</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="email" name="email" placeholder="usuario@empresa.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required oninput="checkStrength()">
+                </div>
+                <div class="password-strength">
+                    <div class="strength-bar" id="strength-bar"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Confirmar contraseña</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password2" name="password2" placeholder="••••••••" required oninput="checkMatch()">
+                </div>
+                <p id="match-msg" class="match-error">Las contraseñas no coinciden</p>
+            </div>
+
+            <button type="submit">REGISTRARSE</button>
+        </form>
+        
+        <div class="links">
+            ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+        </div>
+    </div>
+
+    <script>
+        function checkStrength() {
+            const pass = document.getElementById('password').value;
+            const bar = document.getElementById('strength-bar');
+            let strength = 0;
+            
+            if (pass.length >= 8) strength += 25;
+            if (pass.match(/[A-Z]/)) strength += 25;
+            if (pass.match(/[0-9]/)) strength += 25;
+            if (pass.match(/[^a-zA-Z0-9]/)) strength += 25;
+
+            bar.style.width = strength + '%';
+            
+            if (strength <= 25) bar.style.background = '#ef4444';
+            else if (strength <= 50) bar.style.background = '#f59e0b';
+            else if (strength <= 75) bar.style.background = '#10b981';
+            else bar.style.background = '#059669';
+        }
+
+        function checkMatch() {
+            const pass = document.getElementById('password').value;
+            const pass2 = document.getElementById('password2').value;
+            const msg = document.getElementById('match-msg');
+            
+            if (pass2.length > 0 && pass !== pass2) {
+                msg.style.display = 'block';
+            } else {
+                msg.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>

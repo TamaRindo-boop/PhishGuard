@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "PhishGuard",
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "PhishGuard"
+	}
+}
